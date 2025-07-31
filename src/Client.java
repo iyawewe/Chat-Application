@@ -5,9 +5,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import java.util.Objects;
-
-public class Main {
+public class Client {
 
 
     public  static class main extends JFrame implements ActionListener {
@@ -30,7 +28,7 @@ public class Main {
             p1.setBackground(new Color(0x3E4E5E));
             add(p1);
 
-            //back image
+            //back button
             JButton backButton = new JButton("Back");
             backButton.setBounds(10, 20, 70, 30);
             backButton.setFocusPainted(false);
@@ -47,8 +45,9 @@ public class Main {
             });
             p1.add(backButton);
 
+
             //contact name
-            JLabel name=new JLabel("USER-1");
+            JLabel name=new JLabel("USER-2");
             name.setBounds(190,20,130,40);
             name.setFont(new Font("SansSerif", Font.BOLD, 15));
             name.setForeground(Color.WHITE);
@@ -142,6 +141,6 @@ public class Main {
 
     }
     public static void main(String[] args) {
-         new main();
+        new main();
     }
 }
