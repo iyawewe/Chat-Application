@@ -2,30 +2,31 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
-import java.util.Objects;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.*;
 
 public class Main {
 
+    static DataOutputStream dataOutputStream;
 
     public  static class main extends JFrame implements ActionListener {
         JTextField text;
         JPanel textField;
-        Box vertical=Box.createVerticalBox();//messages to be assigned below each other
-        main(){
+        static Box vertical=Box.createVerticalBox();//messages to be assigned below each other
+        main() {
 
             setLayout(null);
-            setSize(450,700);
-            setLocation(200,50);
+            setSize(450, 700);
+            setLocation(200, 50);
             getContentPane().setBackground(new Color(0xF5F5F5));
 
             setUndecorated(true);
 
-            //pannel setup
-            JPanel p1=new JPanel();
-            p1.setBounds(0,0,450,70);
+            //panel setup
+            JPanel p1 = new JPanel();
+            p1.setBounds(0, 0, 450, 70);
             p1.setLayout(null);
             p1.setBackground(new Color(0x3E4E5E));
             add(p1);
@@ -48,23 +49,38 @@ public class Main {
             p1.add(backButton);
 
             //contact name
-            JLabel name=new JLabel("USER-1");
-            name.setBounds(190,20,130,40);
+            JLabel name = new JLabel("USER-1");
+            name.setBounds(190, 20, 130, 40);
             name.setFont(new Font("SansSerif", Font.BOLD, 15));
             name.setForeground(Color.WHITE);
             p1.add(name);
 
-            //text frield for text  messages
-            textField=new JPanel();
-            textField.setBackground(Color.DARK_GRAY);
+            //text field for text messages
+            textField = new JPanel();
             textField.setLayout(new BorderLayout());
             textField.setBounds(5, 75, 440, 570);
+            textField.setBackground(Color.DARK_GRAY);
             add(textField);
 
+            // Create a JScrollPane with vertical scroll
+            JScrollPane scrollPane = new JScrollPane(vertical);
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            scrollPane.setBorder(null); // optional: cleaner look
+            scrollPane.getViewport().setBackground(Color.DARK_GRAY); // match background
 
-            text=new JTextField();
-            text.setBounds(5,655,310,40);
-            text.setFont(new Font("SAN_SERIF",Font.PLAIN,16));
+            textField.add(scrollPane, BorderLayout.CENTER);
+
+//            textField = new JPanel();
+//            textField.setBackground(Color.DARK_GRAY);
+//            textField.setLayout(new BorderLayout());
+//            textField.setBounds(5, 75, 440, 570);
+//            add(textField);
+
+
+            text = new JTextField();
+            text.setBounds(5, 655, 310, 40);
+            text.setFont(new Font("SAN_SERIF", Font.PLAIN, 16));
             text.setBackground(Color.WHITE);
             text.setForeground(Color.BLACK);
             add(text);
@@ -76,20 +92,13 @@ public class Main {
             send.setFocusPainted(false);
             send.setBorderPainted(false);
             send.setFont(new Font("SansSerif", Font.BOLD, 14));
-            send.setBounds(320,655,123,40);
-            text.setFont(new Font("SAN_SERIF",Font.PLAIN,16));
+            send.setBounds(320, 655, 123, 40);
+            text.setFont(new Font("SAN_SERIF", Font.PLAIN, 16));
             send.addActionListener(this);
             add(send);
 
 
             setVisible(true);
-        }
-        public ImageIcon createScaledIcon(String path,int width,int height)
-        {
-            ImageIcon originalIcon=new ImageIcon(ClassLoader.getSystemResource(path));
-            Image OriginalImage=originalIcon.getImage();
-            Image scaledImage= originalIcon.getImage().getScaledInstance(width,height,Image.SCALE_SMOOTH);
-            return new ImageIcon(scaledImage);
         }
 
         @Override
@@ -120,6 +129,12 @@ public class Main {
             textField.revalidate();
             textField.repaint();
 
+            try {
+                dataOutputStream.writeUTF(message);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+
             text.setText(""); // clear input
         }
 
@@ -134,7 +149,7 @@ public class Main {
 
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-            panel.setBackground(new Color(0xF5F5F5));  // match window background
+            panel.setBackground(new Color(0xF5F5F5));  // match a window background
             panel.add(output);
 
             return panel;
@@ -142,6 +157,37 @@ public class Main {
 
     }
     public static void main(String[] args) {
-         new main();
+        main ui =new main();
+        try{
+            ServerSocket socket=new ServerSocket(6000);
+            while (true)
+            {
+                Socket s=socket.accept();
+                DataInputStream dataInputStream=new DataInputStream(s.getInputStream());
+                dataOutputStream=new DataOutputStream(s.getOutputStream());
+                while (true)
+                {
+                    String msg =dataInputStream.readUTF();
+                    JPanel panel= main.formatLabel(msg);
+
+                    JPanel left= new JPanel(new FlowLayout(FlowLayout.LEFT));
+                    left.setBackground(new Color((0xf5f5f5)));
+                    left.add(panel);
+
+                    ui.vertical.add(left);
+                    ui.vertical.add(Box.createVerticalStrut(10));
+
+                    //refresh chat
+                    SwingUtilities.invokeLater(() -> {
+                        ui.vertical.revalidate();
+                        ui.vertical.repaint();
+
+                    });
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
